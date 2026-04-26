@@ -69,6 +69,7 @@ export function ReportForm() {
     success: boolean
     message: string
     case_number?: string
+    submitted_data?: FormData
   } | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -105,6 +106,7 @@ export function ReportForm() {
           success: true,
           message: data.message,
           case_number: data.case_number,
+          submitted_data: { ...formData },
         })
         // Reset form
         setFormData({
@@ -137,19 +139,27 @@ export function ReportForm() {
   }
 
   if (submitResult?.success) {
+    const submittedData = submitResult.submitted_data
+    const incidentLabel = INCIDENT_TYPES.find(t => t.value === submittedData?.incident_type)?.label || submittedData?.incident_type
+
     return (
       <Card className="border-primary/20 bg-primary/5">
         <CardContent className="pt-6">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <CheckCircle2 className="h-8 w-8 text-primary" />
+          <div className="flex flex-col gap-6">
+            {/* Success Header */}
+            <div className="flex flex-col items-center gap-4 text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <CheckCircle2 className="h-8 w-8 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold text-foreground">Report Submitted Successfully</h3>
+                <p className="mt-2 text-muted-foreground">{submitResult.message}</p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-xl font-semibold text-foreground">Report Submitted Successfully</h3>
-              <p className="mt-2 text-muted-foreground">{submitResult.message}</p>
-            </div>
+
+            {/* Case Number */}
             {submitResult.case_number && (
-              <div className="mt-4 rounded-lg border border-primary/30 bg-card p-4">
+              <div className="rounded-lg border border-primary/30 bg-card p-4 text-center">
                 <p className="text-sm text-muted-foreground">Your Case Number</p>
                 <p className="mt-1 font-mono text-2xl font-bold text-primary">{submitResult.case_number}</p>
                 <p className="mt-2 text-xs text-muted-foreground">
@@ -157,7 +167,67 @@ export function ReportForm() {
                 </p>
               </div>
             )}
-            <Button onClick={() => setSubmitResult(null)} className="mt-4">
+
+            {/* What Happens Next */}
+            <div className="rounded-lg border bg-card p-4">
+              <h4 className="font-semibold text-foreground flex items-center gap-2">
+                <AlertCircle className="h-4 w-4 text-primary" />
+                What Happens Next
+              </h4>
+              <ol className="mt-3 space-y-2 text-sm text-muted-foreground list-decimal list-inside">
+                <li>Your report is securely stored and assigned to a case officer</li>
+                <li>The case will be reviewed within 24-48 hours</li>
+                <li>If you provided contact info, you may be contacted for additional details</li>
+                <li>Use your case number to track progress anytime</li>
+              </ol>
+            </div>
+
+            {/* Submitted Details Summary */}
+            {submittedData && (
+              <div className="rounded-lg border bg-card p-4">
+                <h4 className="font-semibold text-foreground mb-3">Your Submitted Report</h4>
+                <dl className="space-y-3 text-sm">
+                  <div className="flex justify-between border-b pb-2">
+                    <dt className="text-muted-foreground">Incident Type</dt>
+                    <dd className="font-medium text-foreground">{incidentLabel}</dd>
+                  </div>
+                  {submittedData.platform && (
+                    <div className="flex justify-between border-b pb-2">
+                      <dt className="text-muted-foreground">Platform</dt>
+                      <dd className="font-medium text-foreground">{submittedData.platform}</dd>
+                    </div>
+                  )}
+                  {submittedData.incident_date && (
+                    <div className="flex justify-between border-b pb-2">
+                      <dt className="text-muted-foreground">Incident Date</dt>
+                      <dd className="font-medium text-foreground">{new Date(submittedData.incident_date).toLocaleDateString()}</dd>
+                    </div>
+                  )}
+                  <div className="border-b pb-2">
+                    <dt className="text-muted-foreground mb-1">Description</dt>
+                    <dd className="font-medium text-foreground text-xs bg-muted/50 p-2 rounded">{submittedData.incident_description}</dd>
+                  </div>
+                  <div className="flex justify-between border-b pb-2">
+                    <dt className="text-muted-foreground">Report Type</dt>
+                    <dd className="font-medium text-foreground">{submittedData.is_anonymous ? "Anonymous" : "Identified"}</dd>
+                  </div>
+                  {!submittedData.is_anonymous && submittedData.reporter_email && (
+                    <div className="flex justify-between border-b pb-2">
+                      <dt className="text-muted-foreground">Contact Email</dt>
+                      <dd className="font-medium text-foreground">{submittedData.reporter_email}</dd>
+                    </div>
+                  )}
+                  {submittedData.perpetrator_known && (
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Perpetrator Known</dt>
+                      <dd className="font-medium text-foreground">Yes</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            )}
+
+            <Button onClick={() => setSubmitResult(null)} className="w-full">
               Submit Another Report
             </Button>
           </div>
