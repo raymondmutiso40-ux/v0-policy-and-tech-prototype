@@ -1,7 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ReportForm } from "@/components/report-form"
 import { TrackCase } from "@/components/track-case"
-import { Shield, FileText, Search, Scale, Lock, Users } from "lucide-react"
+import { LegalResources } from "@/components/legal-resources"
+import { Shield, FileText, Search, Scale, Lock, Users, Building2 } from "lucide-react"
 
 export default function Home() {
   return (
@@ -62,14 +63,21 @@ export default function Home() {
       {/* Main Content */}
       <main className="mx-auto max-w-3xl px-4 py-8">
         <Tabs defaultValue="report" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="report" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Report Incident
+              <span className="hidden sm:inline">Report</span>
+              <span className="sm:hidden">Report</span>
             </TabsTrigger>
             <TabsTrigger value="track" className="flex items-center gap-2">
               <Search className="h-4 w-4" />
-              Track Case
+              <span className="hidden sm:inline">Track Case</span>
+              <span className="sm:hidden">Track</span>
+            </TabsTrigger>
+            <TabsTrigger value="resources" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Resources</span>
+              <span className="sm:hidden">Help</span>
             </TabsTrigger>
           </TabsList>
           <div className="mt-6">
@@ -78,6 +86,9 @@ export default function Home() {
             </TabsContent>
             <TabsContent value="track">
               <TrackCase />
+            </TabsContent>
+            <TabsContent value="resources">
+              <LegalResources />
             </TabsContent>
           </div>
         </Tabs>
