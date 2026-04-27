@@ -267,10 +267,10 @@ export default function AdminDashboard() {
   Refresh
   </Button>
   <Button variant="ghost" size="sm" onClick={() => setIsAuthenticated(false)}>
-  <LogOut className="h-4 w-4 mr-2" />
-> Logout
-  </Button>
-  </div>
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
       </header>
 
