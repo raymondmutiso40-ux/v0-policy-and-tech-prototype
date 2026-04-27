@@ -109,7 +109,7 @@ export function TrackCase() {
               <Input
                 id="case_number"
                 value={caseNumber}
-                onChange={(e) => setCaseNumber(e.target.value.toUpperCase())}
+                onChange={(e) => setCaseNumber(e.target.value)}
                 placeholder="TFGBV-20260425-XXXXXXXX"
                 className="font-mono"
               />
