@@ -54,21 +54,31 @@ export async function POST(request: NextRequest) {
 
     // Try to send email if Resend API key is configured
     let emailSent = false
-    if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY.startsWith("re_")) {
+    const hasApiKey = !!process.env.RESEND_API_KEY
+    const keyStartsWithRe = process.env.RESEND_API_KEY?.startsWith("re_")
+    console.log("[v0] RESEND_API_KEY exists:", hasApiKey)
+    console.log("[v0] Key starts with re_:", keyStartsWithRe)
+    console.log("[v0] Sending to emails:", emails)
+    
+    if (hasApiKey && keyStartsWithRe) {
       try {
+        console.log("[v0] Attempting to send email via Resend...")
         const { Resend } = await import("resend")
         const resend = new Resend(process.env.RESEND_API_KEY)
         
-        await resend.emails.send({
+        const result = await resend.emails.send({
           from: "SafeReport Kenya <onboarding@resend.dev>",
           to: emails,
           subject: `[URGENT] TFGBV Case Forwarded: ${caseData.case_number}`,
           html: generateEmailHtml(caseData, authorityNames),
         })
+        console.log("[v0] Resend result:", JSON.stringify(result))
         emailSent = true
       } catch (emailError) {
-        console.log("Email sending skipped - API key invalid or email failed:", emailError)
+        console.error("[v0] Email sending failed:", emailError)
       }
+    } else {
+      console.log("[v0] Skipping email - API key not configured properly")
     }
 
     // Update case status and record forwarding
