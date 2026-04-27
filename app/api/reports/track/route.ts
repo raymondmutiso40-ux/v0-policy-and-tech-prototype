@@ -5,7 +5,8 @@ import { NextRequest, NextResponse } from "next/server"
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const caseNumber = searchParams.get("case_number")
+    // Support both parameter names
+    const caseNumber = searchParams.get("caseNumber") || searchParams.get("case_number")
 
     if (!caseNumber) {
       return NextResponse.json(
@@ -17,10 +18,11 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
 
     // Only return limited information for privacy
+    // Don't uppercase - case numbers contain lowercase hex characters
     const { data, error } = await supabase
       .from("reports")
       .select("case_number, status, incident_type, created_at, updated_at")
-      .eq("case_number", caseNumber.toUpperCase())
+      .eq("case_number", caseNumber.trim())
       .single()
 
     if (error || !data) {
