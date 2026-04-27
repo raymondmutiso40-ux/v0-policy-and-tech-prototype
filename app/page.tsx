@@ -139,7 +139,7 @@ export default function Home() {
       <footer className="mt-auto border-t bg-card py-8">
         <div className="mx-auto max-w-5xl px-4 text-center text-sm text-muted-foreground">
           <p>
-            <strong>SafeReport Kenya</strong> - Afro-IP Law & Tech Hackathon 2026
+            <strong>SafeReport Kenya</strong> - Afro-IP Law &amp; Tech Hackathon 2026
           </p>
           <p className="mt-2">
             Anchored in the Constitution of Kenya (2010) and Data Protection Act, 2019
