@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
         platform: body.platform || null,
         evidence_description: body.evidence_description || null,
         evidence_urls: body.evidence_urls || null,
+        evidence_files: body.evidence_files || [],
         reporter_name: body.is_anonymous ? null : body.reporter_name,
         reporter_email: body.is_anonymous ? null : body.reporter_email,
         reporter_phone: body.is_anonymous ? null : body.reporter_phone,

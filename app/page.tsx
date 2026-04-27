@@ -1,8 +1,10 @@
+import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { ReportForm } from "@/components/report-form"
 import { TrackCase } from "@/components/track-case"
 import { LegalResources } from "@/components/legal-resources"
-import { Shield, FileText, Search, Scale, Lock, Users, Building2 } from "lucide-react"
+import { Shield, FileText, Search, Scale, Lock, Users, Building2, Settings } from "lucide-react"
 
 export default function Home() {
   return (
@@ -19,9 +21,17 @@ export default function Home() {
               <p className="text-xs text-muted-foreground">TFGBV Reporting Portal</p>
             </div>
           </div>
-          <div className="hidden items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:flex">
-            <Lock className="h-3 w-3" />
-            Secure & Confidential
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary sm:flex">
+              <Lock className="h-3 w-3" />
+              Secure & Confidential
+            </div>
+            <Link href="/admin">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Admin</span>
+              </Button>
+            </Link>
           </div>
         </div>
       </header>

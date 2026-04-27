@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Field, FieldLabel, FieldDescription, FieldGroup, FieldError } from "@/components/ui/field"
 import { Spinner } from "@/components/ui/spinner"
-import { AlertCircle, CheckCircle2, Shield, Lock } from "lucide-react"
+import { AlertCircle, CheckCircle2, Shield, Lock, Upload, X, FileIcon, ImageIcon, VideoIcon } from "lucide-react"
 
 const INCIDENT_TYPES = [
   { value: "cyber_stalking", label: "Cyber Stalking" },
@@ -37,12 +37,20 @@ const PLATFORMS = [
   "Other",
 ]
 
+interface EvidenceFile {
+  pathname: string
+  filename: string
+  size: number
+  type: string
+}
+
 interface FormData {
   incident_type: string
   incident_description: string
   incident_date: string
   platform: string
   evidence_description: string
+  evidence_files: EvidenceFile[]
   is_anonymous: boolean
   reporter_name: string
   reporter_email: string
@@ -58,6 +66,7 @@ export function ReportForm() {
     incident_date: "",
     platform: "",
     evidence_description: "",
+    evidence_files: [],
     is_anonymous: true,
     reporter_name: "",
     reporter_email: "",
@@ -65,6 +74,8 @@ export function ReportForm() {
     perpetrator_known: false,
     perpetrator_description: "",
   })
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitResult, setSubmitResult] = useState<{
     success: boolean
@@ -73,6 +84,65 @@ export function ReportForm() {
     submitted_data?: FormData
   } | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setIsUploading(true)
+    setUploadError(null)
+
+    try {
+      const formDataUpload = new FormData()
+      for (let i = 0; i < files.length; i++) {
+        formDataUpload.append('files', files[i])
+      }
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formDataUpload,
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setFormData(prev => ({
+          ...prev,
+          evidence_files: [...prev.evidence_files, ...data.files]
+        }))
+        toast.success(`${data.files.length} file(s) uploaded successfully`)
+      } else {
+        setUploadError(data.error || 'Failed to upload files')
+        toast.error('Upload failed', { description: data.error })
+      }
+    } catch {
+      setUploadError('Network error during upload')
+      toast.error('Network error', { description: 'Failed to upload files' })
+    } finally {
+      setIsUploading(false)
+      // Reset input
+      e.target.value = ''
+    }
+  }
+
+  const removeFile = (pathname: string) => {
+    setFormData(prev => ({
+      ...prev,
+      evidence_files: prev.evidence_files.filter(f => f.pathname !== pathname)
+    }))
+  }
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+  }
+
+  const getFileIcon = (type: string) => {
+    if (type.startsWith('image/')) return <ImageIcon className="h-4 w-4" />
+    if (type.startsWith('video/')) return <VideoIcon className="h-4 w-4" />
+    return <FileIcon className="h-4 w-4" />
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -129,6 +199,7 @@ export function ReportForm() {
           incident_date: "",
           platform: "",
           evidence_description: "",
+          evidence_files: [],
           is_anonymous: true,
           reporter_name: "",
           reporter_email: "",
@@ -339,18 +410,106 @@ export function ReportForm() {
               {errors.incident_description && <FieldError>{errors.incident_description}</FieldError>}
             </Field>
 
-            {/* Evidence */}
+            {/* Evidence Upload */}
             <Field>
-              <FieldLabel htmlFor="evidence_description">Evidence Description</FieldLabel>
+              <FieldLabel>Upload Evidence Files</FieldLabel>
               <FieldDescription>
-                Describe any screenshots, messages, or other evidence you have.
+                Upload screenshots, photos, videos, PDFs, or audio recordings (max 10MB each).
+              </FieldDescription>
+              
+              {/* Upload Area */}
+              <div className="mt-2">
+                <label
+                  htmlFor="file-upload"
+                  className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                    isUploading 
+                      ? 'border-primary/50 bg-primary/5' 
+                      : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                  }`}
+                >
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    {isUploading ? (
+                      <>
+                        <Spinner className="h-8 w-8 mb-2 text-primary" />
+                        <p className="text-sm text-muted-foreground">Uploading...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-semibold text-primary">Click to upload</span> or drag and drop
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Images, Videos, PDFs, Audio (max 10MB)
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    className="hidden"
+                    multiple
+                    accept="image/*,video/*,audio/*,.pdf"
+                    onChange={handleFileUpload}
+                    disabled={isUploading}
+                  />
+                </label>
+              </div>
+
+              {/* Upload Error */}
+              {uploadError && (
+                <div className="mt-2 flex items-center gap-2 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  {uploadError}
+                </div>
+              )}
+
+              {/* Uploaded Files List */}
+              {formData.evidence_files.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-sm font-medium text-foreground">
+                    Uploaded Files ({formData.evidence_files.length})
+                  </p>
+                  {formData.evidence_files.map((file) => (
+                    <div
+                      key={file.pathname}
+                      className="flex items-center justify-between p-2 rounded-lg bg-muted/50 border"
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {getFileIcon(file.type)}
+                        <span className="text-sm truncate">{file.filename}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({formatFileSize(file.size)})
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(file.pathname)}
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Field>
+
+            {/* Evidence Description */}
+            <Field>
+              <FieldLabel htmlFor="evidence_description">Additional Evidence Notes</FieldLabel>
+              <FieldDescription>
+                Describe any other evidence you have or cannot upload.
               </FieldDescription>
               <Textarea
                 id="evidence_description"
-                placeholder="e.g., I have screenshots of the messages, saved emails, etc."
+                placeholder="e.g., I have more screenshots on my phone, witnesses who can confirm, etc."
                 value={formData.evidence_description}
                 onChange={(e) => setFormData({ ...formData, evidence_description: e.target.value })}
-                rows={3}
+                rows={2}
               />
             </Field>
 
