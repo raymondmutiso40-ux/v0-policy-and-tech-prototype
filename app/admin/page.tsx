@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,7 +20,8 @@ import {
   RefreshCw,
   LogOut,
   BarChart3,
-  Users
+  Users,
+  Home
 } from "lucide-react"
 
 interface Report {
@@ -188,7 +190,13 @@ export default function AdminDashboard() {
   // Login Screen
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4 relative">
+        <Link href="/" className="absolute left-4 top-4">
+          <Button variant="outline" size="sm" className="gap-2">
+            <Home className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
@@ -247,16 +255,22 @@ export default function AdminDashboard() {
               <p className="text-xs text-muted-foreground">TFGBV Case Management</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={fetchCases} disabled={isLoading}>
-              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => setIsAuthenticated(false)}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </div>
+<div className="flex items-center gap-2">
+  <Link href="/">
+    <Button variant="outline" size="sm">
+      <Home className="h-4 w-4 mr-2" />
+      Home
+    </Button>
+  </Link>
+  <Button variant="outline" size="sm" onClick={fetchCases} disabled={isLoading}>
+  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+  Refresh
+  </Button>
+  <Button variant="ghost" size="sm" onClick={() => setIsAuthenticated(false)}>
+  <LogOut className="h-4 w-4 mr-2" />
+> Logout
+  </Button>
+  </div>
         </div>
       </header>
 
