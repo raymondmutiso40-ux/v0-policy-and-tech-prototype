@@ -3,18 +3,22 @@ import { NextRequest, NextResponse } from "next/server"
 
 // POST - Submit a new report
 export async function POST(request: NextRequest) {
+  console.log("[v0] POST /api/reports called")
   try {
     const supabase = await createClient()
     const body = await request.json()
+    console.log("[v0] Request body:", JSON.stringify(body, null, 2))
 
     // Validate required fields
     if (!body.incident_type || !body.incident_description) {
+      console.log("[v0] Validation failed - missing required fields")
       return NextResponse.json(
         { error: "Incident type and description are required" },
         { status: 400 }
       )
     }
 
+    console.log("[v0] Attempting to insert into database...")
     // Insert the report
     const { data, error } = await supabase
       .from("reports")
@@ -37,13 +41,14 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error("Database error:", error)
+      console.error("[v0] Database error:", error)
       return NextResponse.json(
         { error: "Failed to submit report. Please try again." },
         { status: 500 }
       )
     }
 
+    console.log("[v0] Successfully inserted report:", data)
     return NextResponse.json({
       success: true,
       case_number: data.case_number,

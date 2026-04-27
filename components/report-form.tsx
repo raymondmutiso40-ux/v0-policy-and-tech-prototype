@@ -158,19 +158,29 @@ export function ReportForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validateForm()) return
+    console.log("[v0] Form submit triggered")
+    console.log("[v0] Form data:", formData)
+    
+    if (!validateForm()) {
+      console.log("[v0] Validation failed, errors:", errors)
+      return
+    }
+    console.log("[v0] Validation passed")
 
     setIsSubmitting(true)
     setSubmitResult(null)
 
     try {
+      console.log("[v0] Sending POST to /api/reports")
       const response = await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
+      console.log("[v0] Response status:", response.status)
 
       const data = await response.json()
+      console.log("[v0] Response data:", data)
 
       if (response.ok) {
         // Show success toast popup
