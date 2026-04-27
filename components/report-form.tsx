@@ -149,8 +149,8 @@ export function ReportForm() {
     if (!formData.incident_type) {
       newErrors.incident_type = "Please select an incident type"
     }
-    if (!formData.incident_description || formData.incident_description.length < 20) {
-      newErrors.incident_description = "Please provide a detailed description (at least 20 characters)"
+    if (!formData.incident_description || formData.incident_description.length < 10) {
+      newErrors.incident_description = "Please provide a description (at least 10 characters)"
     }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -162,7 +162,10 @@ export function ReportForm() {
     console.log("[v0] Form data:", formData)
     
     if (!validateForm()) {
-      console.log("[v0] Validation failed, errors:", errors)
+      console.log("[v0] Validation failed")
+      toast.error("Please fix the errors", {
+        description: "Check that all required fields are filled correctly"
+      })
       return
     }
     console.log("[v0] Validation passed")
