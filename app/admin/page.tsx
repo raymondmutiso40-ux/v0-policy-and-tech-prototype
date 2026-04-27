@@ -296,7 +296,16 @@ export default function AdminDashboard() {
       const data = await response.json()
 
       if (response.ok) {
-        toast.success(`Case forwarded to ${data.forwardedTo}`)
+        if (data.emailSent) {
+          toast.success(`Case forwarded via email to: ${data.forwardedTo}`, {
+            duration: 8000,
+          })
+        } else {
+          toast.success(`Case marked as forwarded to: ${data.forwardedTo}`, {
+            description: `Contact them at: ${data.emails?.join(", ")}`,
+            duration: 10000,
+          })
+        }
         setSelectedAuthorities([])
         fetchCases()
       } else {
