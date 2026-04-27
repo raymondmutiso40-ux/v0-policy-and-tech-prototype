@@ -50,6 +50,24 @@ export async function POST(request: NextRequest) {
     }
 
     console.log("[v0] Successfully inserted report:", data)
+    
+    // Send email notification to authorities
+    try {
+      await sendNewCaseNotification({
+        caseNumber: data.case_number,
+        incidentType: body.incident_type,
+        platform: body.platform || "Not specified",
+        description: body.incident_description,
+        isAnonymous: body.is_anonymous ?? true,
+        hasEvidence: (body.evidence_files?.length > 0) || !!body.evidence_description,
+        submittedAt: new Date().toISOString(),
+      })
+      console.log("[v0] Email notification sent to authorities")
+    } catch (emailError) {
+      // Don't fail the request if email fails - report is already saved
+      console.error("[v0] Failed to send email notification:", emailError)
+    }
+
     return NextResponse.json({
       success: true,
       case_number: data.case_number,
