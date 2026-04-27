@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
+import { sendNewCaseNotification } from "@/lib/email"
 import { NextRequest, NextResponse } from "next/server"
 
 // POST - Submit a new report
