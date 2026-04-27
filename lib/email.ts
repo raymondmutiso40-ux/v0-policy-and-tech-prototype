@@ -74,14 +74,34 @@ function getAuthoritiesForIncident(incidentType: string): string[] {
   return AUTHORITY_ROUTING[incidentType] || AUTHORITY_ROUTING.other
 }
 
-export async function sendNewCaseNotification(data: NewCaseNotificationData) {
-  // Get the primary authority email (from env) and any additional emails
-  // AUTHORITY_EMAIL can be comma-separated for multiple addresses
-  // e.g., "odpc@example.com,dci@example.com,ngec@example.com"
-  const authorityEmails = process.env.AUTHORITY_EMAIL?.split(",").map(e => e.trim()).filter(Boolean) || []
+// Hardcoded authority email addresses for the hackathon prototype
+// In production, these would come from a database or environment variables
+const AUTHORITY_EMAILS: Record<string, string[]> = {
+  // Primary authority email (fallback for all cases)
+  PRIMARY: process.env.AUTHORITY_EMAIL ? [process.env.AUTHORITY_EMAIL] : [],
+  
+  // Specific authority emails by code (add real emails here for production)
+  ODPC: [], // e.g., ["complaints@odpc.go.ke"]
+  DCI: [],  // e.g., ["cybercrime@police.go.ke"]  
+  CA: [],   // e.g., ["complaints@ca.go.ke"]
+  NGEC: [], // e.g., ["info@ngeckenya.org"]
+}
 
-  if (authorityEmails.length === 0) {
-    console.error("[v0] AUTHORITY_EMAIL not configured")
+export async function sendNewCaseNotification(data: NewCaseNotificationData) {
+  // Get relevant authorities for this incident type
+  const relevantAuthorityCodes = getAuthoritiesForIncident(data.incidentType)
+  
+  // Collect all email addresses
+  const authorityEmails: string[] = [
+    ...AUTHORITY_EMAILS.PRIMARY, // Always include primary
+    ...relevantAuthorityCodes.flatMap(code => AUTHORITY_EMAILS[code] || [])
+  ].filter(Boolean)
+
+  // Remove duplicates
+  const uniqueEmails = [...new Set(authorityEmails)]
+
+  if (uniqueEmails.length === 0) {
+    console.error("[v0] No authority emails configured")
     return { success: false, error: "Authority email not configured" }
   }
 
@@ -102,7 +122,7 @@ export async function sendNewCaseNotification(data: NewCaseNotificationData) {
     // Send to all configured authority emails
     const { error } = await resend.emails.send({
       from: "SafeReport Kenya <onboarding@resend.dev>",
-      to: authorityEmails,
+      to: uniqueEmails,
       subject: `[URGENT] New TFGBV Case: ${data.caseNumber} - ${incidentLabel}`,
       html: `
         <!DOCTYPE html>
@@ -235,8 +255,8 @@ export async function sendNewCaseNotification(data: NewCaseNotificationData) {
       return { success: false, error: error.message }
     }
 
-    console.log("[v0] Email notification sent to:", authorityEmails.join(", "))
-    return { success: true, sentTo: authorityEmails }
+    console.log("[v0] Email notification sent to:", uniqueEmails.join(", "))
+    return { success: true, sentTo: uniqueEmails }
   } catch (error) {
     console.error("[v0] Email sending error:", error)
     return { success: false, error: "Failed to send email" }
