@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -60,10 +61,19 @@ export function TrackCase() {
 
       if (response.ok) {
         setCaseStatus(data.report)
+        toast.success("Case Found!", {
+          description: `Status: ${STATUS_CONFIG[data.report.status]?.label || data.report.status}`,
+        })
       } else {
+        toast.error("Case Not Found", {
+          description: "Please check your case number and try again.",
+        })
         setError(data.error || "Case not found")
       }
     } catch {
+      toast.error("Network Error", {
+        description: "Please check your connection and try again.",
+      })
       setError("Network error. Please try again.")
     } finally {
       setIsLoading(false)

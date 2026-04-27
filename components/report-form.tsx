@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -102,6 +103,19 @@ export function ReportForm() {
       const data = await response.json()
 
       if (response.ok) {
+        // Show success toast popup
+        toast.success("Report Submitted Successfully!", {
+          description: `Your case number is: ${data.case_number}`,
+          duration: 10000,
+          action: {
+            label: "Copy Case #",
+            onClick: () => {
+              navigator.clipboard.writeText(data.case_number)
+              toast.info("Case number copied to clipboard!")
+            },
+          },
+        })
+        
         setSubmitResult({
           success: true,
           message: data.message,
@@ -123,12 +137,18 @@ export function ReportForm() {
           perpetrator_description: "",
         })
       } else {
+        toast.error("Failed to Submit Report", {
+          description: data.error || "Please try again or contact support.",
+        })
         setSubmitResult({
           success: false,
           message: data.error || "Failed to submit report",
         })
       }
     } catch {
+      toast.error("Network Error", {
+        description: "Please check your internet connection and try again.",
+      })
       setSubmitResult({
         success: false,
         message: "Network error. Please try again.",
