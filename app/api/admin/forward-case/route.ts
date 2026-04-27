@@ -54,17 +54,19 @@ export async function POST(request: NextRequest) {
 
     // Try to send email if Resend API key is configured
     let emailSent = false
-    const hasApiKey = !!process.env.RESEND_API_KEY
-    const keyStartsWithRe = process.env.RESEND_API_KEY?.startsWith("re_")
+    const apiKey = process.env.RESEND_API_KEY?.trim() // Trim any whitespace
+    const hasApiKey = !!apiKey
+    const keyStartsWithRe = apiKey?.startsWith("re_")
     console.log("[v0] RESEND_API_KEY exists:", hasApiKey)
     console.log("[v0] Key starts with re_:", keyStartsWithRe)
+    console.log("[v0] Key first 10 chars:", apiKey?.substring(0, 10))
     console.log("[v0] Sending to emails:", emails)
     
-    if (hasApiKey && keyStartsWithRe) {
+    if (hasApiKey && apiKey) {
       try {
         console.log("[v0] Attempting to send email via Resend...")
         const { Resend } = await import("resend")
-        const resend = new Resend(process.env.RESEND_API_KEY)
+        const resend = new Resend(apiKey)
         
         const result = await resend.emails.send({
           from: "SafeReport Kenya <onboarding@resend.dev>",
